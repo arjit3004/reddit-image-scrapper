@@ -145,7 +145,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    num = int(args.num)
+    num = int(args.num) if args.num else None
     if args.subreddit:
         directory = args.subreddit
         flag = 0
