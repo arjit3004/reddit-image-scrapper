@@ -112,6 +112,15 @@ def download_images(subreddit, flag, num=None):
         print('ERROR IN download_images()...')
         return False
 
+def rename_files(folder):
+    for count, filename in enumerate(os.listdir(folder)):
+        dst = str(count)+".jpg"
+        src =f"{folder}/{filename}"  # foldername/filename, if .py file is outside folder
+        dst =f"{folder}/{dst}"
+         
+        # rename() function will
+        # rename all the files
+        os.rename(src, dst)
 
 if __name__ == "__main__":
 
@@ -158,6 +167,7 @@ if __name__ == "__main__":
     if directory:
         os.mkdir(directory)
         if download_images(directory, flag, num=num):
+            rename_files(directory)
             print("DOWNLOADING COMPLETE")
         else:
             print("ERROR")
