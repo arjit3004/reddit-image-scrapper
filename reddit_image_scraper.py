@@ -12,9 +12,11 @@ import numpy as np
 directory = None
 
 
-def get_initial_id(subreddit):
+def get_initial_id(subreddit, flag):
     try:
         url = f"https://www.reddit.com/r/{subreddit}/hot.json?sort=hot&show=all&t=all"
+        if flag==1:
+            url = f"https://www.reddit.com/user/{subreddit}/hot.json?sort=hot&show=all&t=all"
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
         }
@@ -27,9 +29,13 @@ def get_initial_id(subreddit):
         return None
 
 
-def get_links(id_, subreddit):
+def get_links(id_, subreddit, flag):
     try:
         api = "https://gateway.reddit.com/desktopapi/v1/subreddits/{}?rtj=only&redditWebClient=web2x&app=web2x-client-production&allow_over18=1&include=prefsSubreddit&after={}&forceGeopopular=false&layout=card&sort=hot".format(
+            subreddit, id_
+        )
+        if flag==1:
+            api = "https://gateway.reddit.com/desktopapi/v1/user/{}/conversations?rtj=only&redditWebClient=web2x&app=web2x-client-production&allow_over18=1&include=&after={}&dist=25&sort=new&t=all".format(
             subreddit, id_
         )
         headers = {
@@ -73,16 +79,21 @@ def download_image(url):
         print("ERROR in download_image()...")
 
 
-def download_images(subreddit):
+def download_images(subreddit, flag, num=None):
     try:
-        id_ = get_initial_id(subreddit)
+        if num is None:
+            num=100
+        id_ = get_initial_id(subreddit, flag)
+        if not id_:
+            print('WRONG subreddit')
+            return True
         image_url = []
-        while id_:
-            id_, links = get_links(id_, subreddit)
+        while id_ and len(image_url)<=num:
+            id_, links = get_links(id_, subreddit,flag)
             image_url += links
 
         n = len(image_url)//100
-        print(l'DOWNLOADING ...')
+        print('DOWNLOADING ...')
         if n!=0:
             split = np.array_split(image_url, n)
             for i in split:
@@ -112,14 +123,41 @@ if __name__ == "__main__":
         dest="subreddit",
         type=str,
         help="Enter input subreddit with extention",
-        required=True,
+        required=False,
+    )
+
+    parser.add_argument(
+        "-u",
+        "--user",
+        dest="user",
+        type=str,
+        help="Enter input user with extention",
+        required=False,
+    )
+
+    parser.add_argument(
+        "-n",
+        "--num",
+        dest="num",
+        type=str,
+        help="Enter input num with extention",
+        required=False,
     )
 
     args = parser.parse_args()
-
-    directory = args.subreddit
-    os.mkdir(directory)
-    if download_images(directory):
-        print("DOWNLOADING COMPLETE")
+    num = int(args.num)
+    if args.subreddit:
+        directory = args.subreddit
+        flag = 0
+    elif args.user:
+        directory = args.user
+        flag = 1
     else:
-        print("ERROR")
+        print('Please give the input')
+
+    if directory:
+        os.mkdir(directory)
+        if download_images(directory, flag, num=num):
+            print("DOWNLOADING COMPLETE")
+        else:
+            print("ERROR")
