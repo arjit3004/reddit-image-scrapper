@@ -1,2 +1,5 @@
-# reddit-image-scrapper
-This script will download all the images in a subreddit.
+## reddit-image-scrapper
+
+```bash
+python3 reddit_image_scraper.py -s subreddit
+```
